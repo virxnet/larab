@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+
+class ActionLog extends Model
+{
+    use \Backpack\CRUD\app\Models\Traits\CrudTrait;
+    use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'is_admin',
+        'model',
+        'action',
+        'data',
+        'user_dump',
+        'ip',
+        'browser'
+    ];
+
+    protected $appends = [
+        'user',
+        'friendly_user'
+    ];
+
+    //protected $casts = [
+    //    'is_admin' => 'boolean'
+    //];
+
+    public function getUserAttribute()
+    {
+        return User::where('id', $this->user_id)->first();
+    }
+
+    public function getFriendlyUserAttribute()
+    {
+        $user = User::where('id', $this->user_id)->first();
+        if (isset($user->first_name) && isset($user->last_name) && isset($user->email)) {
+            return "{$user->first_name} {$user->last_name}" . "&lt;{$user->email}&gt;";
+        } else {
+            return '-'; 
+        }
+    }
+
+    public static function new($model=null, $action=null, $data=null)
+    {
+        $user = Auth::user();
+
+        if (is_null($user)) {
+            $user = session('active_admin_data');
+        }
+
+        if (isset($user->id)) {
+            $user_id = $user->id;
+            $is_admin = User::isAdmin($user);
+        } else {
+            $user_id = null;
+            $is_admin = false;
+        }
+
+        $user_data = session('active_user_data');
+        
+        if (is_null($user_data)) {
+            $user_data = User::where('id', $user_id)->first();
+        }
+        
+        self::create([
+            'user_id' => $user_id,
+            'is_admin' => $is_admin,
+            'model' => $model,
+            'action' => $action,
+            'data' => $data,
+            'user_dump' => $user_data,
+            'id' => ActionLog::getIp(),
+            'browser' => null // TODO: Its all going through the API so collaborate with frontend to get this
+        ]);
+    }
+
+    public static function getIp(){
+        return null; // TODO
+    }
+}

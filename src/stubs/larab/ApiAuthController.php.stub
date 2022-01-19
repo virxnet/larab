@@ -1,0 +1,152 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\ClientSession;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\ActionLog;
+
+class ApiAuthController extends Controller
+{
+    public function logout()
+    { 
+        if (Auth::check()) {
+            $user = Auth::user();
+            $client_name = env('API_CLIENT_NAME') . "-{$user->email}";
+            DB::table('oauth_access_tokens')->where('name', $client_name)->delete();
+            ClientSession::where('client_name', $client_name)->delete();
+            ActionLog::new(__METHOD__, 'logged out successfully');
+            return response()->json(['message' => 'User Logged Out'], 200);
+        }
+        return response()->json(['message' => 'Session Already Expired'], 200);
+    }
+
+    public function keep_alive()
+    {
+        // TODO: This is a tempoorary solutoion and is NOT ideal, should be removed for 
+        //       user triggered revokes or something else
+        $user = Auth::user();
+        $client_name = env('API_CLIENT_NAME') . "-{$user->email}";
+        $client_id = DB::table('oauth_access_tokens')->where('name', $client_name)->pluck('client_id')->first();
+        ClientSession::where('client_name', $client_name)->delete();
+        if (!is_null($client_id)) 
+        {
+            ClientSession::insert([
+                'user_id' => $user->id,
+                'client_id' => $client_id,
+                'client_name' => $client_name,
+                'last_active' => time()
+            ]);
+        }
+        DB::table('oauth_access_tokens')->where('client_id', '!=', $client_id)->delete(); // Grabage collect old from pre
+
+    }
+
+    public function login(Request $request)
+    {
+        
+        $session_timeout = env('API_SESSION_EXPIRY_SECONDS'); 
+
+        $match = DB::table('users')->where('email', $request->email)->count();
+        if ($match !== 1)
+        {
+            return response()->json(['message' => 'Invalid Email or Password'], 401);
+        }
+
+        // Limit users to only one login session per user
+        // TODO: Note the following is not the best way to do this but applying as a hotfix for now until full feature is implementated later
+        $client_name = env('API_CLIENT_NAME') . "-{$request->email}";
+
+        $last_active = ClientSession::where('client_name', $client_name)->pluck('last_active')->first();
+        if (!is_null($last_active))
+        {
+            if ($last_active + $session_timeout < time()) { 
+                ClientSession::where('client_name', $client_name)->delete();
+                DB::table('oauth_access_tokens')->where('name', $client_name)->delete();
+            }
+        }
+
+        $match = DB::table('oauth_access_tokens')->where('name', $client_name)->count();
+        if ($match > 0)
+        {
+            if (!is_null($last_active)) {
+
+                if (isset($request->force) && $request->force == true) {
+                    ClientSession::where('client_name', $client_name)->delete();
+                    DB::table('oauth_access_tokens')->where('name', $client_name)->delete();
+
+                    ActionLog::new(__METHOD__, 'failed login 401 - already logged but force killed that session, try again now');
+                    return response()->json([
+                        'message' => "This account is already logged in on another device but force killed that session, try again now", 
+                        'last_active' => date('r', $last_active),
+                        'expires_at' => date('r', $last_active + $session_timeout),
+                        'seconds_left' => ($last_active + $session_timeout) - time(),
+                    ], 401);
+                } 
+
+                ActionLog::new(__METHOD__, 'failed login 401 - already logged in on another device');
+                return response()->json([
+                    'message' => "This account is already logged in on another device", 
+                    'last_active' => date('r', $last_active),
+                    'expires_at' => date('r', $last_active + $session_timeout),
+                    'seconds_left' => ($last_active + $session_timeout) - time(),
+                ], 401);
+            } 
+        }
+
+        $rules = [
+            'email' => 'required|exists:users',
+            'password'  => 'required'
+        ];
+        $request->validate($rules);
+        $data = [
+            'email' => $request->get('email'),
+            'password'  =>  $request->get('password'),
+            'is_active' => true,
+            'api_enabled' => true,
+        ];
+
+        if(Auth::attempt($data))
+        {
+            $user = Auth::user();
+
+            $user['roles'] = DB::table('model_has_roles')
+                                    ->where('model_type', 'App\Models\User')
+                                    ->where('model_id', $user->id)
+                                    ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+                                    ->get(['role_id','name']);
+
+            // Role Based Login Constraint Control
+            foreach($user['roles'] as $role)
+            {
+                switch($role->name)
+                {
+                    //case config('larab.role_admin_editor'):
+                    //case config('larab.role_user'):
+                    default:
+                        session(['active_user_data' => $user]);
+                        ActionLog::new(__METHOD__, 'logged in successfully');
+                        return response()->json([
+                            'user'  =>  $user, 
+                            'token' =>  $user->createToken(env('API_CLIENT_NAME').'-'.$user->email)->accessToken, // Token
+                            'message' => 'Login Success',
+                            'status' => 'success',
+                            'session_seconds_left' => $session_timeout,
+                            'keep-alive' => $this->keep_alive()
+                        ]);
+                }
+            }
+
+            ActionLog::new(__METHOD__, 'failed login 401 - Unauthorized (User has no valid roles assigned)');
+            return response()->json(['message' => 'Unauthorized (User has no valid roles assigned)'], 401);
+            
+        }
+        else
+        {
+            ActionLog::new(__METHOD__, 'failed login 401');
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+    }
+}

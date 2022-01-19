@@ -1,0 +1,89 @@
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Http;
+use App\Support\APIInfo;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes (Standard)
+|--------------------------------------------------------------------------
+*/
+
+
+// Auth -----
+// --- POST Login ---
+Route::post('login', [App\Http\Controllers\ApiAuthController::class,'login']);
+Route::middleware('auth:api')->get('logout', [App\Http\Controllers\ApiAuthController::class,'logout']);
+Route::middleware('auth:api')->get('keep-alive', [App\Http\Controllers\ApiAuthController::class,'keep_alive']);
+
+//////////////////////////////////////////////////////////
+
+
+
+// NewRoutes
+
+
+
+//////////////////////////////////////////////////////////
+
+/*
+|--------------------------------------------------------------------------
+| API Routes (Custom)
+|--------------------------------------------------------------------------
+*/
+
+
+// CustomRoutes
+
+
+
+//////////////////////////////////////////////////////////
+
+// Info -----
+Route::get('info', function (Request $request) {
+    return APIInfo::getInfo($request);
+});
+
+// Catch All Fallback -----
+Route::get('{all}', function () {
+    return response()->json(
+        [
+            'status' => 'failed',
+            'message' => 'Resource Not Found'
+        ]
+    , 404);
+});
+Route::post('{all}', function () {
+    return response()->json(
+        [
+            'status' => 'failed',
+            'message' => 'Resource Not Found'
+        ]
+    , 404);
+});
+Route::put('{all}', function () {
+    return response()->json(
+        [
+            'status' => 'failed',
+            'message' => 'Resource Not Found'
+        ]
+    , 404);
+});
+Route::patch('{all}', function () {
+    return response()->json(
+        [
+            'status' => 'failed',
+            'message' => 'Resource Not Found'
+        ]
+    , 404);
+});
+Route::delete('{all}', function () {
+    return response()->json(
+        [
+            'status' => 'failed',
+            'message' => 'Resource Not Found'
+        ]
+    , 404);
+});

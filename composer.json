@@ -1,0 +1,42 @@
+{
+    "name": "virx/larab",
+    "description": "larab",
+    "type": "library",
+    "require": {
+        "doctrine/dbal": "^3.2",
+        "laravel/framework": "^8.0|^7.0|^6.0",
+        "backpack/crud": "4.1.*",
+        "laravel/passport": "^10.3",
+        "laracasts/generators": "^2.0",
+        "yadakhov/laradump": "^2.2",
+        "backpack/permissionmanager": "^6.0",
+        "backpack/generators": "^3.1"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Antony Peiris",
+            "email": "asp@virx.net"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "VirX\\Larab\\": "src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "VirX\\Larab\\LarabServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true
+        }
+    },
+    "require-dev": {
+        "backpack/generators": "^3.1"
+    }
+}

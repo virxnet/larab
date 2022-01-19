@@ -1,0 +1,83 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+#use Laravel\Sanctum\HasApiTokens;
+use Laravel\Passport\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
+
+class User extends Authenticatable
+{
+    use CrudTrait, HasRoles, HasApiTokens, HasFactory, Notifiable;
+
+    protected static function booted()
+    {
+        static::saved(function ($obj) {
+            ActionLog::new(__CLASS__, 'saved', $obj);
+        });
+        static::updated(function ($obj) {
+            ActionLog::new(__CLASS__, 'updated', $obj);
+        });
+        static::deleted(function ($obj) {
+            ActionLog::new(__CLASS__, 'deleted', $obj);
+        });
+    }
+
+    final public function delete()
+    {
+        throw new \RuntimeException('Model cannot be deleted.');
+    }
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'uid',
+        'name',
+        'first_name',
+        'last_name',
+        'email',
+        'password',
+        'is_active',
+        'api_enabled'
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
+
+    public static function isAdmin($user) 
+    {
+        $user = User::where('id', $user->id)->with('roles')->first();
+
+        foreach ($user->roles as $role) {
+            if ($role->name === config('default.role_admin_super')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

@@ -1,0 +1,73 @@
+<?php
+
+namespace {{ namespace }};
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use App\Models\ActionLog;
+
+class {{ class }} extends Model
+{
+    use HasFactory;
+
+    protected static function booted()
+    {
+        static::saved(function ($obj) {
+            ActionLog::new(__CLASS__, 'saved', $obj);
+        });
+        static::updated(function ($obj) {
+            ActionLog::new(__CLASS__, 'updated', $obj);
+        });
+        static::deleted(function ($obj) {
+            ActionLog::new(__CLASS__, 'deleted', $obj);
+        });
+    }
+
+    final public function delete()
+    {
+        //throw new \RuntimeException('Model cannot be deleted.');
+    }
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [// FillableArray];
+
+    /**
+     * The attributes that are appended to result
+     *
+     * @var array
+     */
+    //protected $appends = [];
+
+    /**
+    * The attributes that aren't mass assignable.
+    *
+    * @var array
+    */
+    //protected $guarded = [];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        //'id' => 'integer',
+    ];
+
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
+    //protected $dates = [];
+
+    public function getFillable() 
+    {
+        return $this->fillable;
+    }
+
+}
