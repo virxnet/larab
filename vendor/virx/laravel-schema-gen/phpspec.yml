@@ -1,5 +1,0 @@
-suites:
-    main:
-        namespace: VirX\Generators
-        psr4_prefix: VirX\Generators
-        src_path: src
