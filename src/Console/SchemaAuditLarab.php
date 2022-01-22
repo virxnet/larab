@@ -69,15 +69,15 @@ class SchemaAuditLarab extends Command
             foreach ($cols as $index => $col) {
                 if (!in_array($col, $filter_out)) {
                     $meta = Db::select(DB::raw("SHOW COLUMNS FROM {$table}"));
-                    //dd($meta);
                     $type = DB::getSchemaBuilder()->getColumnType($table, $col);
-                    if ($meta[$index]->Null == 'YES') {
+                    if ($meta[$index]->Null == 'YES' && $meta[$index]->Field == $col) {
                         $appends .= ':nullable';
                     }
-                    $schema .= "\t{$col}:{$type}{$appends}, \\\n";
+                    $schema .= "{$col}:{$type}{$appends},\\\n";
+                    $appends = '';
                 }
             }
-            $schema .= "\"\n";
+            $schema .= chr(8). "\"\n";
 
             $this->info("####");
 

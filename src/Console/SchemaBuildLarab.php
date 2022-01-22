@@ -79,23 +79,27 @@ class SchemaBuildLarab extends Command
         
         $res = Str::singular($this->argument('resource'));
         $ress = Str::pluralStudly($res);
-        $table = strtolower($ress);
+        $table = strtolower(Str::snake($ress));
         $schema = $this->option('schema');
         $schema_arr = explode(',', $schema);
         $schema_marr = [];
         $rules = [];
-        foreach ($schema_arr as $col) {
-            $col = explode(':', $col);
-            $schema_marr[] = [
-                'name' => trim(@$col[0]),
-                'type' => trim(@$col[1]),
-                'attrs' => trim(@$col[2])
-            ];
-            $rules[trim(@$col[0])] = '';
-            if (!isset($col[2])) { // not nullable
-                $rules[trim(@$col[0])] .= "required";
-            } elseif (trim($col[2]) == 'unique') {
-                $rules[trim(@$col[0])] .= "unique:{$table}";
+        foreach ($schema_arr as $key => $col) {
+            if (strlen($col) > 0) {
+                $col = explode(':', $col);
+                $schema_marr[] = [
+                    'name' => trim(@$col[0]),
+                    'type' => trim(@$col[1]),
+                    'attrs' => trim(@$col[2])
+                ];
+                $rules[trim(@$col[0])] = '';
+                if (!isset($col[2])) { // not nullable
+                    $rules[trim(@$col[0])] .= "required";
+                } elseif (trim($col[2]) == 'unique') {
+                    $rules[trim(@$col[0])] .= "unique:{$table}";
+                }
+            } else {
+                unset($schema_arr[$key]);
             }
         }
 
@@ -104,7 +108,7 @@ class SchemaBuildLarab extends Command
             $this->line('Building Migration and Model...');
             $this->call("make:migration:schema", [   // TODO: drop this package and generate natively with api name support for migrations?
                 'name' => strtolower("create_{$table}_table"),
-                '--schema' => $schema,
+                '--schema' => implode(',', $schema_arr),
                 '--model' => true
             ]);
         
