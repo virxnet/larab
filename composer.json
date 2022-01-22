@@ -7,10 +7,10 @@
         "laravel/framework": "^8.0|^7.0|^6.0",
         "backpack/crud": "4.1.*",
         "laravel/passport": "^10.3",
-        "laracasts/generators": "^2.0",
         "yadakhov/laradump": "^2.2",
         "backpack/permissionmanager": "^6.0",
-        "backpack/generators": "^3.1"
+        "backpack/generators": "^3.1",
+        "virx/laravel-schema-gen": "dev-master"
     },
     "license": "MIT",
     "authors": [
