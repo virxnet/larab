@@ -10,7 +10,8 @@
         "yadakhov/laradump": "^2.2",
         "backpack/permissionmanager": "^6.0",
         "backpack/generators": "^3.1",
-        "virx/laravel-schema-gen": "dev-master"
+        "virx/laravel-schema-gen": "dev-master",
+        "virx/laravel-model-auto-uuid": "dev-main"
     },
     "license": "MIT",
     "authors": [
