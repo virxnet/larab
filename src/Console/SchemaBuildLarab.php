@@ -248,36 +248,37 @@ class SchemaBuildLarab extends Command
                 $this->line("Creating Routes for {$api_path}...");
                 $contents = $filesystem->get($routes_file);
 
-                $routes = "// {$res} -----";
+                $rres = Str::snake($res);
+                $routes = "// {$rres} -----";
 
                 // GET info
                 $routes .= "\nRoute::get('/" 
-                        . strtolower(Str::plural($res)) . 
+                        . strtolower(Str::plural($rres)) . 
                         "_info', [App\\Http\\Controllers\\{$api_ns_path}\\{$res}Controller::class, 'create']);";
 
                 // GET collection
                 $routes .= "\nRoute::middleware('auth:api')->get('/" 
-                        . strtolower(Str::plural($res)) . 
+                        . strtolower(Str::plural($rres)) . 
                         "', [App\\Http\\Controllers\\{$api_ns_path}\\{$res}Controller::class, 'index']);";
 
                 // GET one
                 $routes .= "\nRoute::middleware('auth:api')->get('/" 
-                        . strtolower($res) . 
+                        . strtolower($rres) . 
                         "/{id}', [App\\Http\\Controllers\\{$api_ns_path}\\{$res}Controller::class, 'show']);";
 
                 // POST new
                 $routes .= "\nRoute::middleware('auth:api')->post('/" 
-                        . strtolower($res) . 
+                        . strtolower($rres) . 
                         "', [App\\Http\\Controllers\\{$api_ns_path}\\{$res}Controller::class, 'store']);";
 
                 // PUT
                 $routes .= "\nRoute::middleware('auth:api')->put('/" 
-                        . strtolower($res) . 
+                        . strtolower($rres) . 
                         "/{id}', [App\\Http\\Controllers\\{$api_ns_path}\\{$res}Controller::class, 'update']);";
 
                 // DELETE
                 $routes .= "\nRoute::middleware('auth:api')->delete('/" 
-                        . strtolower($res) . 
+                        . strtolower($rres) . 
                         "/{id}', [App\\Http\\Controllers\\{$api_ns_path}\\{$res}Controller::class, 'destroy']);";
 
                 $routes .= "\n\n// NewRoutes";
