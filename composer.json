@@ -4,7 +4,7 @@
     "type": "library",
     "require": {
         "doctrine/dbal": "^3.2",
-        "laravel/framework": "^8.0|^7.0|^6.0",
+        "laravel/framework": "^9.19|^8.0|^7.0|^6.0",
         "backpack/crud": "4.1.*",
         "laravel/passport": "^10.3",
         "yadakhov/laradump": "^2.2",
