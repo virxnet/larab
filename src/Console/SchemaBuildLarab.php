@@ -104,7 +104,7 @@ class SchemaBuildLarab extends Command
         }
 
         var_dump($schema_marr);
-        if ($this->confirm("Begin [{$res}] Init {$api_path}?", false)) {
+        //if ($this->confirm("Begin [{$res}] Init {$api_path}?", false)) {
             $this->line('Building Migration and Model...');
             $this->call("make:migration:schema", [   // TODO: drop this package and generate natively with api name support for migrations?
                 'name' => strtolower("create_{$table}_table"),
@@ -293,20 +293,20 @@ class SchemaBuildLarab extends Command
             }
 
             // Migrate
-            if ($this->confirm("Run Migrations?", false)) {
+            //if ($this->confirm("Run Migrations?", false)) {
                 $this->line('Running Migration...');
                 $this->call("migrate");
-            }
+            //}
             
             // Backpack Update
-            if ($this->confirm("Build Backpack?", false)) {
+            //if ($this->confirm("Build Backpack?", false)) {
                 $this->line('Building Backpack...');
                 $this->call("backpack:build");
-            }
+            //}
 
-        } else {
-            $this->error('Aborted!');
-        }
+        //} else {
+        //    $this->error('Aborted!');
+        //}
 
         $this->info('Cleaning up...');
         if ($swapped_stubs === true) {
