@@ -15,8 +15,12 @@ class AlterUsersTableAddApiFields extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->string('uid')->nullable()->after('id');
-            $table->string('first_name')->nullable();
-            $table->string('last_name')->nullable();
+            if (!Schema::hasColumn('users', 'first_name') {
+                $table->string('first_name')->nullable();
+            }
+            if (!Schema::hasColumn('users', 'last_name') {
+                $table->string('last_name')->nullable();
+            }
             $table->boolean('is_active')->default(true);
             $table->boolean('api_enabled')->default(true);
         });
@@ -30,7 +34,7 @@ class AlterUsersTableAddApiFields extends Migration
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['uid', 'first_name', 'last_name', 'is_active', 'api_enabled']);
+            $table->dropColumn(['uid', 'is_active', 'api_enabled']);
         });
     }
 }
